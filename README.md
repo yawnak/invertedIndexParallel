@@ -1,0 +1,2 @@
+# invertedIndexParallel
+ CourseWork Parallel Computing
