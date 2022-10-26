@@ -14,6 +14,10 @@ func TestLinkedInsert(t *testing.T) {
 			t.Errorf("error inserting: %v\n", err)
 		}
 	}
+	err := ll.Insert(5)
+	if err == nil {
+		t.Errorf("no error when list is full\n")
+	}
 	cur := ll.Head
 	for i := 0; i < size; i++ {
 		fmt.Printf("%v ", cur.value)
