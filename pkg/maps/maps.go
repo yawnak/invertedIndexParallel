@@ -6,3 +6,7 @@ import (
 
 type Mapper struct {
 }
+
+func (m *Mapper) Map(files []domain.FileToken, out <-chan domain.WordToken) {
+
+}
