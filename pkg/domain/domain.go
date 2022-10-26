@@ -9,6 +9,6 @@ type WordToken struct {
 }
 
 type FileToken struct {
-	docid int64
-	file  *os.File
+	DocID int64
+	File  *os.File
 }
