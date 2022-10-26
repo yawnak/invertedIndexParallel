@@ -12,3 +12,9 @@ type LinkedList struct {
 	capacity int
 	length   int
 }
+
+func NewLinkedList(capacity int) *LinkedList {
+	return &LinkedList{
+		capacity: capacity,
+	}
+}
