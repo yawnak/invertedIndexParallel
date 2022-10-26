@@ -18,3 +18,20 @@ func NewLinkedList(capacity int) *LinkedList {
 		capacity: capacity,
 	}
 }
+
+func (l *LinkedList) Insert(val interface{}) error {
+	if l.length == l.capacity {
+		return fmt.Errorf("list is full")
+	}
+	if l.Head == nil {
+		l.Head = &Node{value: val}
+	} else {
+		cur := l.Head
+		for i := 0; i < l.length-1; i++ {
+			cur = cur.next
+		}
+		cur.next = &Node{value: val}
+	}
+	l.length++
+	return nil
+}
