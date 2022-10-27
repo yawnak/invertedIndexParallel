@@ -3,8 +3,8 @@ package linklist
 import "fmt"
 
 type Node struct {
-	next  *Node
-	value interface{}
+	Next  *Node
+	Value interface{}
 }
 
 type LinkedList struct {
@@ -24,15 +24,19 @@ func (l *LinkedList) Insert(val interface{}) error {
 		return fmt.Errorf("list is full")
 	}
 	if l.Head == nil {
-		l.Head = &Node{value: val}
+		l.Head = &Node{Value: val}
 	} else {
 		cur := l.Head
 		for i := 0; i < l.length-1; i++ {
-			cur = cur.next
+			cur = cur.Next
 		}
-		cur.next = &Node{value: val}
+		cur.Next = &Node{Value: val}
 	}
 	l.length++
+	return nil
+}
+
+func (L *LinkedList) Remove(val interface{}) error {
 	return nil
 }
 
