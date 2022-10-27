@@ -19,6 +19,7 @@ type bucket struct {
 
 type Dictionary struct {
 	buckets []linklist.LinkedList
+	size    int
 }
 
 func NewDictionary(bucketsNum int) *Dictionary {
@@ -75,6 +76,8 @@ func (d *Dictionary) Insert(key string, val interface{}) {
 		})
 		if err != nil {
 			log.Fatalln("need to do resize")
+		} else {
+			d.size++
 		}
 	}
 }
