@@ -51,4 +51,8 @@ func TestDict(t *testing.T) {
 			t.Errorf("wrong value, key %s, val %d != %d", v.Key, res, v.Value)
 		}
 	}
+	fmt.Printf("size: %d\n", dict.size)
+	if dict.size != 3 {
+		t.Errorf("dict size is wrong %d != %d", dict.size, 3)
+	}
 }
