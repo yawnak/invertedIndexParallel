@@ -1,8 +1,6 @@
 package dict
 
 import (
-	"log"
-
 	"github.com/asstronom/invertedIndexParallel/pkg/hash"
 	"github.com/asstronom/invertedIndexParallel/pkg/linklist"
 )
@@ -49,6 +47,22 @@ func (d *Dictionary) Get(key string) (interface{}, bool) {
 	return nil, false
 }
 
+func (d *Dictionary) realoc() {
+	data := make([]bucket, d.size)
+	for _, buck := range d.buckets {
+		buckLen := buck.GetLen()
+		cur := buck.Head
+		for i := 0; i < buckLen; i++ {
+			data = append(data, cur.Value.(bucket))
+			cur = cur.Next
+		}
+	}
+	d.buckets = make([]linklist.LinkedList, 2*len(d.buckets))
+	for i := range data {
+		d.Insert(data[i].Key, data[i].Val)
+	}
+}
+
 func (d *Dictionary) Insert(key string, val interface{}) {
 	khash := hash.HashString(key)
 	idx := khash % int64(len(d.buckets))
@@ -75,7 +89,8 @@ func (d *Dictionary) Insert(key string, val interface{}) {
 			Val:  val,
 		})
 		if err != nil {
-			log.Fatalln("need to do resize")
+			d.realoc()
+			d.Insert(key, val)
 		} else {
 			d.size++
 		}
