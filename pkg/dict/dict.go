@@ -48,3 +48,33 @@ func (d *Dictionary) Get(key string) (interface{}, bool) {
 	return nil, false
 }
 
+func (d *Dictionary) Insert(key string, val interface{}) {
+	khash := hash.HashString(key)
+	idx := khash % int64(len(d.buckets))
+	bucklen := d.buckets[idx].GetLen()
+	cur := d.buckets[idx].Head
+	var isExists bool
+	for i := 0; i < bucklen; i++ {
+		if (cur.Value.(bucket).Hash == khash) && (cur.Value.(bucket).Key == key) {
+			isExists = true
+			break
+		}
+		cur = cur.Next
+	}
+	if isExists {
+		cur.Value = bucket{
+			Hash: khash,
+			Key:  key,
+			Val:  val,
+		}
+	} else {
+		err := d.buckets[idx].Insert(bucket{
+			Hash: khash,
+			Key:  key,
+			Val:  val,
+		})
+		if err != nil {
+			log.Fatalln("need to do resize")
+		}
+	}
+}
