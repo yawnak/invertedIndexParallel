@@ -10,7 +10,7 @@ const (
 )
 
 type bucket struct {
-	Hash int64
+	Hash uint64
 	Key  string
 	Val  interface{}
 }
@@ -35,7 +35,7 @@ func NewDictionary(bucketsNum int) *Dictionary {
 
 func (d *Dictionary) Get(key string) (interface{}, bool) {
 	khash := hash.HashString(key)
-	idx := khash % int64(len(d.buckets))
+	idx := khash % uint64(len(d.buckets))
 	bucklen := d.buckets[idx].GetLen()
 	cur := d.buckets[idx].Head
 	for i := 0; i < bucklen; i++ {
@@ -65,7 +65,7 @@ func (d *Dictionary) realoc() {
 
 func (d *Dictionary) Insert(key string, val interface{}) {
 	khash := hash.HashString(key)
-	idx := khash % int64(len(d.buckets))
+	idx := khash % uint64(len(d.buckets))
 	bucklen := d.buckets[idx].GetLen()
 	cur := d.buckets[idx].Head
 	var isExists bool
