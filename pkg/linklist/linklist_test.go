@@ -20,11 +20,11 @@ func TestLinkedInsert(t *testing.T) {
 	}
 	cur := ll.Head
 	for i := 0; i < size; i++ {
-		fmt.Printf("%v ", cur.value)
-		if cur.value.(int) != i {
-			t.Errorf("error value of node, %v != %d", cur.value, i)
+		fmt.Printf("%v ", cur.Value)
+		if cur.Value.(int) != i {
+			t.Errorf("error value of node, %v != %d", cur.Value, i)
 		}
-		cur = cur.next
+		cur = cur.Next
 	}
 	fmt.Println()
 }
