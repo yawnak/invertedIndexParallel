@@ -20,3 +20,16 @@ type bucket struct {
 type Dictionary struct {
 	buckets []linklist.LinkedList
 }
+
+func NewDictionary(bucketsNum int) *Dictionary {
+	if bucketsNum == 0 {
+		bucketsNum = 10
+	}
+	dict := Dictionary{
+		buckets: make([]linklist.LinkedList, bucketsNum),
+	}
+	for i := range dict.buckets {
+		dict.buckets[i] = *linklist.NewLinkedList(linkListCap)
+	}
+	return &dict
+}
