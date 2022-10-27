@@ -35,3 +35,7 @@ func (l *LinkedList) Insert(val interface{}) error {
 	l.length++
 	return nil
 }
+
+func (L *LinkedList) GetLen() int {
+	return L.length
+}
