@@ -1,14 +1,16 @@
 package domain
 
-import "os"
+import (
+	"io"
+)
 
 type WordToken struct {
-	term  string
-	count int64
-	docid int64
+	Term  string
+	Count int64
+	Docid int64
 }
 
 type FileToken struct {
 	DocID int64
-	File  *os.File
+	File  io.Reader
 }
