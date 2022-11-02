@@ -63,6 +63,9 @@ func (d *Dictionary) realoc() {
 		}
 	}
 	d.buckets = make([]linklist.LinkedList, 2*len(d.buckets))
+	for i := range d.buckets {
+		d.buckets[i] = *linklist.NewLinkedList(linkListCap)
+	}
 	for i := range data {
 		d.Insert(data[i].Key, data[i].Val)
 	}
