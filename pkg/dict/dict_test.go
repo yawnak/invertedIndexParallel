@@ -56,3 +56,24 @@ func TestDict(t *testing.T) {
 		t.Errorf("dict size is wrong %d != %d", dict.size, 3)
 	}
 }
+
+
+func TestRange(t *testing.T) {
+	dict := NewDictionary(0)
+	type kv struct {
+		Key   string
+		Value int
+	}
+	kvs := []kv{
+		{"pudge", 13},
+		{"judge", 15},
+		{"sanandreas", 115},
+		{"pudge", 121},
+	}
+	for _, v := range kvs {
+		dict.Insert(v.Key, v.Value)
+	}
+	for kv := range dict.Range() {
+		fmt.Println(kv)
+	}
+}
