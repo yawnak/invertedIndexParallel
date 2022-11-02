@@ -15,6 +15,11 @@ type bucket struct {
 	Val  interface{}
 }
 
+type KV struct {
+	Key string
+	Val interface{}
+}
+
 type Dictionary struct {
 	buckets []linklist.LinkedList
 	size    int
@@ -95,4 +100,24 @@ func (d *Dictionary) Insert(key string, val interface{}) {
 			d.size++
 		}
 	}
+}
+
+func (d *Dictionary) Range() <-chan KV {
+	out := make(chan KV)
+	go func(chan<- KV) {
+		defer close(out)
+		for _, buck := range d.buckets {
+			buckLen := buck.GetLen()
+			cur := buck.Head
+			for i := 0; i < buckLen; i++ {
+				kv := KV{
+					Key: cur.Value.(bucket).Key,
+					Val: cur.Value.(bucket).Val,
+				}
+				out <- kv
+				cur = cur.Next
+			}
+		}
+	}(out)
+	return out
 }
