@@ -1,6 +1,7 @@
 package maps
 
 import (
+	"fmt"
 	"os"
 	"testing"
 
@@ -21,5 +22,9 @@ func TestMap(t *testing.T) {
 	sl[1] = domain.FileToken{DocID: 1, File: f2}
 	sl[2] = domain.FileToken{DocID: 2, File: f3}
 	sl[3] = domain.FileToken{DocID: 3, File: f4}
-	m.Map(sl)
+	out := make(chan []domain.WordToken)
+	go m.Map(sl, out)
+	for tkn := range out {
+		fmt.Println(tkn)
+	}
 }
