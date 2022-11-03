@@ -20,7 +20,7 @@ func linSearch(docid int64, tokens []domain.WordToken) int {
 	return -1
 }
 
-func (m *Mapper) Map(filetokens []domain.FileToken) {
+func (m *Mapper) Map(filetokens []domain.FileToken, out chan<- []domain.WordToken) {
 	d := dict.NewDictionary(50)
 	for _, filetoken := range filetokens {
 		scanner := bufio.NewScanner(filetoken.File)
@@ -45,6 +45,10 @@ func (m *Mapper) Map(filetokens []domain.FileToken) {
 	}
 	fmt.Println("map")
 	for tkn := range d.Range() {
-		fmt.Println(tkn)
+		if tkn.Val == nil {
+			continue
+		}
+		out <- tkn.Val.([]domain.WordToken)
 	}
+	close(out)
 }
