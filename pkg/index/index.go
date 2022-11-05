@@ -6,19 +6,26 @@ import (
 	"sync"
 
 	"github.com/asstronom/invertedIndexParallel/pkg/domain"
+	"github.com/asstronom/invertedIndexParallel/pkg/hash"
 	"github.com/asstronom/invertedIndexParallel/pkg/maps"
+	"github.com/asstronom/invertedIndexParallel/pkg/reduce"
 )
 
 type Architect struct {
 }
 
 type Index struct {
-	mappers []maps.Mapper
+	mappers  []maps.Mapper
+	reducers []*reduce.Reducer
 }
 
 // n - number of mappers, m - numbers of reducers
 func NewIndex(n int, m int) *Index {
-	return &Index{mappers: make([]maps.Mapper, n)}
+	reducers := make([]*reduce.Reducer, m)
+	for i := range reducers {
+		reducers[i] = reduce.NewReducer()
+	}
+	return &Index{mappers: make([]maps.Mapper, n), reducers: reducers}
 }
 
 func buildFanIn(cs []chan []domain.WordToken) <-chan []domain.WordToken {
@@ -73,7 +80,19 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	fts := formFiletokens(files[(len(idx.mappers)-1)*pagesize:], (len(idx.mappers)-1)*pagesize)
 	fmt.Println(fts)
 	go idx.mappers[len(idx.mappers)-1].Map(fts, mapsout[len(idx.mappers)-1])
+
+	reduceins := make([]chan []domain.WordToken, len(idx.reducers))
+	for i := range reduceins {
+		reduceins[i] = make(chan []domain.WordToken, 1)
+	}
+	for i := range idx.reducers {
+		go idx.reducers[i].Reduce(reduceins[i])
+	}
 	for in := range fanin {
-		fmt.Println(in)
+		h := hash.HashString(in[0].Term)
+		reduceins[h%uint64(len(reduceins))] <- in
+	}
+	for i := range reduceins {
+		close(reduceins[i])
 	}
 }
