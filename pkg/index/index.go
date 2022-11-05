@@ -88,8 +88,13 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	for i := range reduceins {
 		reduceins[i] = make(chan []domain.WordToken, 1)
 	}
+	wg := sync.WaitGroup{}
+	wg.Add(len(idx.reducers))
 	for i := range idx.reducers {
-		go idx.reducers[i].Reduce(reduceins[i])
+		go func(wg *sync.WaitGroup, i int) {
+			idx.reducers[i].Reduce(reduceins[i])
+
+		}(&wg, i)
 	}
 	for in := range fanin {
 		h := hash.HashString(in[0].Term)
@@ -98,6 +103,7 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	for i := range reduceins {
 		close(reduceins[i])
 	}
+	wg.Wait()
 }
 
 func (idx *Index) GetPostingsList(term string) *domain.PostingsList {
