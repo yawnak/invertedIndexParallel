@@ -6,8 +6,8 @@ import (
 
 type WordToken struct {
 	Term  string
-	Count int64
 	Docid int64
+	Count int64
 }
 
 type Posting struct {
