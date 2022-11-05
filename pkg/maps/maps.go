@@ -2,7 +2,6 @@ package maps
 
 import (
 	"bufio"
-	"fmt"
 	"unicode"
 
 	"github.com/asstronom/invertedIndexParallel/pkg/dict"
@@ -67,7 +66,6 @@ func (m *Mapper) Map(filetokens []domain.FileToken, out chan<- []domain.WordToke
 			}
 		}
 	}
-	fmt.Println("map")
 	for tkn := range d.Range() {
 		if tkn.Val == nil {
 			continue
