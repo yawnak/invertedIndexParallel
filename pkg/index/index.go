@@ -93,7 +93,7 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	for i := range idx.reducers {
 		go func(wg *sync.WaitGroup, i int) {
 			idx.reducers[i].Reduce(reduceins[i])
-
+			wg.Done()
 		}(&wg, i)
 	}
 	for in := range fanin {
