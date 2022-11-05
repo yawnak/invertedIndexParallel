@@ -10,6 +10,16 @@ type WordToken struct {
 	Docid int64
 }
 
+type Posting struct {
+	Docid int64
+	Count int64
+}
+
+type PostingsList struct {
+	Term    string
+	Posting Posting
+}
+
 type FileToken struct {
 	DocID int64
 	File  io.Reader
