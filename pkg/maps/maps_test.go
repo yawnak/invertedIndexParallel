@@ -28,3 +28,12 @@ func TestMap(t *testing.T) {
 		fmt.Println(tkn)
 	}
 }
+
+func TestStrip(t *testing.T) {
+	ss := []string{
+		"movie", "movie...", "movies...", "i'm", "i'm.", "!i'm",
+	}
+	for i := range ss {
+		fmt.Println(stripNonLetters(ss[i]))
+	}
+}
