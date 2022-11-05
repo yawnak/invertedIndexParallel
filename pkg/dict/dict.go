@@ -53,7 +53,7 @@ func (d *Dictionary) Get(key string) (interface{}, bool) {
 }
 
 func (d *Dictionary) realoc() {
-	data := make([]bucket, d.size)
+	data := make([]bucket, 0, d.size)
 	for _, buck := range d.buckets {
 		buckLen := buck.GetLen()
 		cur := buck.Head
@@ -66,6 +66,7 @@ func (d *Dictionary) realoc() {
 	for i := range d.buckets {
 		d.buckets[i] = *linklist.NewLinkedList(linkListCap)
 	}
+	d.size = 0
 	for i := range data {
 		d.Insert(data[i].Key, data[i].Val)
 	}
@@ -123,4 +124,8 @@ func (d *Dictionary) Range() <-chan KV {
 		}
 	}(out)
 	return out
+}
+
+func (d *Dictionary) Len() int {
+	return d.size
 }

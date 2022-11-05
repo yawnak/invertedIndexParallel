@@ -1,7 +1,9 @@
 package dict
 
 import (
+	"bufio"
 	"fmt"
+	"os"
 	"testing"
 )
 
@@ -57,6 +59,63 @@ func TestDict(t *testing.T) {
 	}
 }
 
+func TestDictionary(t *testing.T) {
+	dir, err := os.ReadDir("test_data")
+	if err != nil {
+		t.Errorf("error reading dir: %s", err)
+	}
+
+	d := NewDictionary(50)
+	m := make(map[string]interface{}, 50)
+
+	for i := range dir {
+		fmt.Println(dir[i].Name())
+		file, err := os.Open("test_data/" + dir[i].Name())
+		if err != nil {
+			t.Errorf("error opening file: %s", err)
+		}
+		scanner := bufio.NewScanner(file)
+		scanner.Split(bufio.ScanWords)
+		for scanner.Scan() {
+			word := string(scanner.Bytes())
+			val, ok := d.Get(word)
+			if !ok {
+				d.Insert(word, 1)
+			} else {
+				n := val.(int)
+				n++
+				d.Insert(word, n)
+			}
+			val, ok = m[word]
+			if !ok {
+				m[word] = 1
+			} else {
+				if val == nil {
+					fmt.Println(word, val, ok)
+				}
+				n := val.(int)
+				n++
+				m[word] = n
+			}
+		}
+	}
+
+	for kv := range d.Range() {
+		val, ok := m[kv.Key]
+		if !ok {
+			t.Errorf("missing key in map: %#v", kv)
+			continue
+		}
+		nd := kv.Val.(int)
+		nm := val.(int)
+		if nd != nm {
+			t.Errorf("wrong val, %d != %d", nd, nm)
+		}
+	}
+	if d.Len() != len(m) {
+		t.Errorf("len is not correct: %d != %d", d.Len(), len(m))
+	}
+}
 
 func TestRange(t *testing.T) {
 	dict := NewDictionary(0)
@@ -64,6 +123,7 @@ func TestRange(t *testing.T) {
 		Key   string
 		Value int
 	}
+	m := map[string]interface{}{}
 	kvs := []kv{
 		{"pudge", 13},
 		{"judge", 15},
@@ -72,8 +132,12 @@ func TestRange(t *testing.T) {
 	}
 	for _, v := range kvs {
 		dict.Insert(v.Key, v.Value)
+		m[v.Key] = v.Value
 	}
 	for kv := range dict.Range() {
+		if kv.Val != m[kv.Key] {
+			t.Errorf("wrong value of key: %s:%d != %s:%d", kv.Key, kv.Val, kv.Key, m[kv.Key])
+		}
 		fmt.Println(kv)
 	}
 }
