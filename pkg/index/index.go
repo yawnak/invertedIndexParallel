@@ -1,7 +1,6 @@
 package index
 
 import (
-	"fmt"
 	"io"
 	"sync"
 
@@ -21,6 +20,12 @@ type Index struct {
 
 // n - number of mappers, m - numbers of reducers
 func NewIndex(n int, m int) *Index {
+	if n == 0 {
+		panic("number of mappers can't be 0")
+	}
+	if m == 0 {
+		panic("number of reducers can't be 0")
+	}
 	reducers := make([]*reduce.Reducer, m)
 	for i := range reducers {
 		reducers[i] = reduce.NewReducer()
@@ -74,11 +79,9 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	pagesize := len(files) / len(idx.mappers)
 	for i := 0; i < len(idx.mappers)-1; i++ {
 		fts := formFiletokens(files[i*pagesize:(i+1)*pagesize], i*pagesize)
-		fmt.Println(fts)
 		go idx.mappers[i].Map(fts, mapsout[i])
 	}
 	fts := formFiletokens(files[(len(idx.mappers)-1)*pagesize:], (len(idx.mappers)-1)*pagesize)
-	fmt.Println(fts)
 	go idx.mappers[len(idx.mappers)-1].Map(fts, mapsout[len(idx.mappers)-1])
 
 	reduceins := make([]chan []domain.WordToken, len(idx.reducers))
@@ -95,4 +98,9 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	for i := range reduceins {
 		close(reduceins[i])
 	}
+}
+
+func (idx *Index) GetPostingsList(term string) *domain.PostingsList {
+	h := hash.HashString(term)
+	return idx.reducers[h%uint64(len(idx.reducers))].GetPostingsList(term)
 }
