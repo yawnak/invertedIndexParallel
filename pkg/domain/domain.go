@@ -16,8 +16,8 @@ type Posting struct {
 }
 
 type PostingsList struct {
-	Term    string
-	Posting Posting
+	Term     string
+	Postings []Posting
 }
 
 type FileToken struct {
