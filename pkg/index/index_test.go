@@ -1,6 +1,7 @@
 package index
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -14,6 +15,7 @@ func TestIndex(t *testing.T) {
 	if err != nil {
 		t.Errorf("error opening file: %s", err)
 	}
-	idx := NewIndex(2, 0)
+	idx := NewIndex(2, 2)
 	idx.IndexDocs([]io.Reader{f1, f2, f3, f4})
+	fmt.Println(idx.GetPostingsList("movie"))
 }
