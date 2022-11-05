@@ -42,5 +42,6 @@ func (r *Reducer) GetPostingsList(term string) *domain.PostingsList {
 	} else if val == nil {
 		return nil
 	}
-	return val.(*domain.PostingsList)
+	pl := val.(domain.PostingsList)
+	return &pl
 }
