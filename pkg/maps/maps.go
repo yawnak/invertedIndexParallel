@@ -43,6 +43,9 @@ func (m *Mapper) Map(filetokens []domain.FileToken, out chan<- []domain.WordToke
 	d := dict.NewDictionary(50)
 	for _, filetoken := range filetokens {
 		scanner := bufio.NewScanner(filetoken.File)
+		if filetoken.File == nil {
+			panic("filetoken is nil")
+		}
 		scanner.Split(bufio.ScanWords)
 		for scanner.Scan() {
 			word := scanner.Bytes()
