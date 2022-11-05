@@ -13,6 +13,24 @@ func NewReducer() *Reducer {
 	return &Reducer{d: dict.NewDictionary(50)}
 }
 
-func (r *Reducer) Reduce(chan []domain.WordToken) {
-	
+func (r *Reducer) Reduce(in <-chan []domain.WordToken) {
+	for tkns := range in {
+		for i := range tkns {
+			val, ok := r.d.Get(tkns[i].Term)
+			var l domain.PostingsList
+			if !ok {
+				l = domain.PostingsList{
+					Term: tkns[i].Term,
+					Postings: []domain.Posting{{
+						Docid: tkns[i].Docid,
+						Count: tkns[i].Count,
+					}},
+				}
+			} else {
+				l = val.(domain.PostingsList)
+				l.Postings = append(l.Postings, domain.Posting{Docid: tkns[i].Docid, Count: tkns[i].Count})
+			}
+			r.d.Insert(tkns[i].Term, l)
+		}
+	}
 }
