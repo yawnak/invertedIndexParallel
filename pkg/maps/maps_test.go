@@ -33,7 +33,13 @@ func TestStrip(t *testing.T) {
 	ss := []string{
 		"movie", "movie...", "movies...", "i'm", "i'm.", "!i'm",
 	}
+	assert := []string{
+		"movie", "movie", "movies", "i'm", "i'm", "i'm",
+	}
 	for i := range ss {
+		if stripNonLetters(ss[i]) != assert[i] {
+			t.Errorf("wrong result: %s != %s", stripNonLetters(ss[i]), assert[i])
+		}
 		fmt.Println(stripNonLetters(ss[i]))
 	}
 }
