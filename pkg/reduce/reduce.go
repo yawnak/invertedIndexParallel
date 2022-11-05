@@ -34,3 +34,13 @@ func (r *Reducer) Reduce(in <-chan []domain.WordToken) {
 		}
 	}
 }
+
+func (r *Reducer) GetPostingsList(term string) *domain.PostingsList {
+	val, ok := r.d.Get(term)
+	if !ok {
+		return nil
+	} else if val == nil {
+		return nil
+	}
+	return val.(*domain.PostingsList)
+}
