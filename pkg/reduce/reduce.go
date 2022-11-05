@@ -1,6 +1,8 @@
 package reduce
 
 import (
+	"sort"
+
 	"github.com/asstronom/invertedIndexParallel/pkg/dict"
 	"github.com/asstronom/invertedIndexParallel/pkg/domain"
 )
@@ -32,6 +34,14 @@ func (r *Reducer) Reduce(in <-chan []domain.WordToken) {
 			}
 			r.d.Insert(tkns[i].Term, l)
 		}
+	}
+
+	for kv := range r.d.Range() {
+		pl := kv.Val.(domain.PostingsList)
+		sort.Slice(pl.Postings, func(i, j int) bool {
+			return pl.Postings[i].Docid < pl.Postings[j].Docid
+		})
+		r.d.Insert(kv.Key, pl)
 	}
 }
 
