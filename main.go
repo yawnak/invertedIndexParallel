@@ -6,13 +6,14 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/asstronom/invertedIndexParallel/pkg/index"
 	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	idx := index.NewIndex(5, 3)
+	idx := index.NewIndex(8, 4)
 	dir, err := os.ReadDir("data")
 	if err != nil {
 		log.Fatalf("error opening dir: %s", err)
@@ -28,7 +29,10 @@ func main() {
 		}
 		files = append(files, file)
 	}
+	start := time.Now()
 	idx.IndexDocs(files)
+	elapsed := time.Since(start)
+	fmt.Printf("Time to build the index: %s\n", elapsed.String())
 
 	fmt.Println(idx.GetPostingsList("again"))
 
