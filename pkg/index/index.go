@@ -33,13 +33,13 @@ func NewIndex(n int, m int) *Index {
 	return &Index{mappers: make([]maps.Mapper, n), reducers: reducers}
 }
 
-func buildFanIn(cs []chan []domain.WordToken) <-chan []domain.WordToken {
+func buildFanIn(cs []chan domain.WordToken) <-chan domain.WordToken {
 	var wg sync.WaitGroup
-	out := make(chan []domain.WordToken)
+	out := make(chan domain.WordToken)
 
 	// Start an output goroutine for each input channel in cs.  output
 	// copies values from c to out until c is closed, then calls wg.Done.
-	output := func(c <-chan []domain.WordToken) {
+	output := func(c <-chan domain.WordToken) {
 		for n := range c {
 			out <- n
 		}
@@ -71,9 +71,9 @@ func formFiletokens(files []io.Reader, startidx int) []domain.FileToken {
 }
 
 func (idx *Index) IndexDocs(files []io.Reader) {
-	mapsout := make([]chan []domain.WordToken, len(idx.mappers))
+	mapsout := make([]chan domain.WordToken, len(idx.mappers))
 	for i := range mapsout {
-		mapsout[i] = make(chan []domain.WordToken)
+		mapsout[i] = make(chan domain.WordToken)
 	}
 	fanin := buildFanIn(mapsout)
 	pagesize := len(files) / len(idx.mappers)
@@ -84,9 +84,9 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	fts := formFiletokens(files[(len(idx.mappers)-1)*pagesize:], (len(idx.mappers)-1)*pagesize)
 	go idx.mappers[len(idx.mappers)-1].Map(fts, mapsout[len(idx.mappers)-1])
 
-	reduceins := make([]chan []domain.WordToken, len(idx.reducers))
+	reduceins := make([]chan domain.WordToken, len(idx.reducers))
 	for i := range reduceins {
-		reduceins[i] = make(chan []domain.WordToken, 1)
+		reduceins[i] = make(chan domain.WordToken, 1)
 	}
 	wg := sync.WaitGroup{}
 	wg.Add(len(idx.reducers))
@@ -97,7 +97,7 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 		}(&wg, i)
 	}
 	for in := range fanin {
-		h := hash.HashString(in[0].Term)
+		h := hash.HashString(in.Term)
 		reduceins[h%uint64(len(reduceins))] <- in
 	}
 	for i := range reduceins {
