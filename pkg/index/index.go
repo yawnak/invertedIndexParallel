@@ -71,11 +71,31 @@ func formFiletokens(files []io.Reader, startidx int) []domain.FileToken {
 }
 
 func (idx *Index) IndexDocs(files []io.Reader) {
+	//create reducers
+	//make channels
+	reduceins := make([]chan domain.WordToken, len(idx.reducers))
+	for i := range reduceins {
+		reduceins[i] = make(chan domain.WordToken, 1)
+	}
+	//waitgroup to wait on reducers later
+	wg := sync.WaitGroup{}
+	wg.Add(len(idx.reducers))
+	//iterate over reducers and launch them
+	for i := range idx.reducers {
+		go func(wg *sync.WaitGroup, i int) {
+			idx.reducers[i].Reduce(reduceins[i])
+			wg.Done()
+		}(&wg, i)
+	}
+
+	//create channels for output from mappers
 	mapsout := make([]chan domain.WordToken, len(idx.mappers))
 	for i := range mapsout {
 		mapsout[i] = make(chan domain.WordToken)
 	}
+	//make fanin channels that will be used to recieve results from all mappers
 	fanin := buildFanIn(mapsout)
+	//paginate slice of files and launch mappers
 	pagesize := len(files) / len(idx.mappers)
 	for i := 0; i < len(idx.mappers)-1; i++ {
 		fts := formFiletokens(files[i*pagesize:(i+1)*pagesize], i*pagesize)
@@ -84,22 +104,13 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	fts := formFiletokens(files[(len(idx.mappers)-1)*pagesize:], (len(idx.mappers)-1)*pagesize)
 	go idx.mappers[len(idx.mappers)-1].Map(fts, mapsout[len(idx.mappers)-1])
 
-	reduceins := make([]chan domain.WordToken, len(idx.reducers))
-	for i := range reduceins {
-		reduceins[i] = make(chan domain.WordToken, 1)
-	}
-	wg := sync.WaitGroup{}
-	wg.Add(len(idx.reducers))
-	for i := range idx.reducers {
-		go func(wg *sync.WaitGroup, i int) {
-			idx.reducers[i].Reduce(reduceins[i])
-			wg.Done()
-		}(&wg, i)
-	}
+	//iterate over results from mappers and send them to corresponding reducers
 	for in := range fanin {
 		h := hash.HashString(in.Term)
 		reduceins[h%uint64(len(reduceins))] <- in
 	}
+
+	//after fanin is closed because mappers have finished their job, close all channels for reducers
 	for i := range reduceins {
 		close(reduceins[i])
 	}
