@@ -39,9 +39,9 @@ func stripNonLetters(s string) string {
 	return string(word[startidx:endidx])
 }
 
-func (m *Mapper) Map(filetokens []domain.FileToken, out chan<- []domain.WordToken) {
-	d := dict.NewDictionary(50)
+func (m *Mapper) Map(filetokens []domain.FileToken, out chan<- domain.WordToken) {
 	for _, filetoken := range filetokens {
+		d := dict.NewDictionary(50)
 		scanner := bufio.NewScanner(filetoken.File)
 		if filetoken.File == nil {
 			panic("filetoken is nil")
@@ -55,25 +55,20 @@ func (m *Mapper) Map(filetokens []domain.FileToken, out chan<- []domain.WordToke
 			}
 			tkn, ok := d.Get(string(word))
 			if !ok {
-				tkn = []domain.WordToken{{Docid: filetoken.DocID, Term: string(word), Count: 1}}
+				tkn = domain.WordToken{Docid: filetoken.DocID, Term: string(word), Count: 1}
 				d.Insert(string(word), tkn)
 			} else {
-				postings_list := tkn.([]domain.WordToken)
-				idx := linSearch(filetoken.DocID, postings_list)
-				if idx == -1 {
-					postings_list = append(postings_list, domain.WordToken{Docid: filetoken.DocID, Term: string(word), Count: 1})
-				} else {
-					postings_list[idx].Count++
-				}
-				d.Insert(string(word), postings_list)
+				posting := tkn.(domain.WordToken)
+				posting.Count++
+				d.Insert(string(word), posting)
 			}
 		}
-	}
-	for tkn := range d.Range() {
-		if tkn.Val == nil {
-			continue
+		for tkn := range d.Range() {
+			if tkn.Val == nil {
+				continue
+			}
+			out <- tkn.Val.(domain.WordToken)
 		}
-		out <- tkn.Val.([]domain.WordToken)
 	}
 	close(out)
 }
