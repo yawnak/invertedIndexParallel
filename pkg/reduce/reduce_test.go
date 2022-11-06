@@ -1,6 +1,7 @@
 package reduce
 
 import (
+	"fmt"
 	"sync"
 	"testing"
 
@@ -8,15 +9,12 @@ import (
 )
 
 func TestReduce(t *testing.T) {
-	input := [][]domain.WordToken{{
+	input := []domain.WordToken{
 		{Term: "Once", Docid: 0, Count: 2},
-	}, {
 		{Term: "Once", Docid: 3, Count: 5},
-	}, {
 		{Term: "again", Docid: 2, Count: 1}, {Term: "again", Docid: 3, Count: 1},
-	}, {
 		{Term: "again", Docid: 0, Count: 1}, {Term: "again", Docid: 1, Count: 1},
-	}}
+	}
 
 	assert := []domain.PostingsList{
 		{Term: "Once", Postings: []domain.Posting{{Docid: 0, Count: 2}, {Docid: 3, Count: 5}}},
@@ -24,7 +22,7 @@ func TestReduce(t *testing.T) {
 	}
 
 	reducer := NewReducer()
-	inchan := make(chan []domain.WordToken)
+	inchan := make(chan domain.WordToken)
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
@@ -38,6 +36,7 @@ func TestReduce(t *testing.T) {
 	wg.Wait()
 	for i := range assert {
 		postlist := reducer.GetPostingsList(assert[i].Term)
+		fmt.Println(postlist)
 		for j := range postlist.Postings {
 			if postlist.Postings[j] != assert[i].Postings[j] {
 				t.Errorf("wrong posting: %#v != %#v", postlist, assert[i])
