@@ -7,8 +7,10 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
+	"github.com/asstronom/invertedIndexParallel/pkg/dict"
 	"github.com/asstronom/invertedIndexParallel/pkg/index"
 	"github.com/gin-gonic/gin"
 )
@@ -37,10 +39,12 @@ func main() {
 	}
 	files := make([]io.Reader, 0, len(dir))
 	filenamemap := make(map[int]string, len(dir))
+	filenamedict := dict.NewDictionary(50)
 	for i, fentry := range dir {
 		//fmt.Println("data/" + fentry.Name())
 		file, err := os.Open("data/" + fentry.Name())
 		filenamemap[i] = fentry.Name()
+		filenamedict.Insert(strconv.Itoa(i), fentry.Name())
 		if err != nil {
 			log.Fatalf("error opening file: %s", err)
 		}
