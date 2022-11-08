@@ -55,8 +55,6 @@ func main() {
 	elapsed := time.Since(start)
 	fmt.Printf("Time to build the index: %s\n", elapsed.String())
 
-	fmt.Println(idx.GetPostingsList("again"))
-
 	router := gin.Default()
 
 	router.GET("/", func(ctx *gin.Context) {
