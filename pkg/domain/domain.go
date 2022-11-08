@@ -15,6 +15,11 @@ type Posting struct {
 	Count int64
 }
 
+type PostingWName struct {
+	Filename string
+	Count    int64
+}
+
 type PostingsList struct {
 	Term     string
 	Postings []Posting
