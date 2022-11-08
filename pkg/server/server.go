@@ -28,6 +28,12 @@ func NewServer(index *index.Index, filenames *dict.Dictionary) *Server {
 	return &Server{index: index, filenames: filenames}
 }
 
+func MakeCode(code int64) []byte {
+	c := make([]byte, 8)
+	binary.PutVarint(c, 500)
+	return c
+}
+
 func (srv *Server) Handle(c net.Conn) {
 	rd := bufio.NewReader(c)
 	wr := bufio.NewWriter(c)
