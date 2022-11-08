@@ -9,8 +9,6 @@ RUN go mod download
 
 RUN go build -o /build
 
-RUN mkdir /data
-
-EXPOSE 8080
+EXPOSE 8080 8000
 
 ENTRYPOINT [ "/build" ]
