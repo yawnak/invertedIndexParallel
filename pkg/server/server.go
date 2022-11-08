@@ -4,11 +4,14 @@ import (
 	"bufio"
 	"context"
 	"encoding/binary"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net"
+	"strconv"
 
 	"github.com/asstronom/invertedIndexParallel/pkg/dict"
+	"github.com/asstronom/invertedIndexParallel/pkg/domain"
 	"github.com/asstronom/invertedIndexParallel/pkg/index"
 )
 
@@ -34,9 +37,10 @@ func (srv *Server) Handle(c net.Conn) {
 			code := make([]byte, 8)
 			binary.PutVarint(code, 400)
 			wr.Write(code)
+			continue
 		}
 		if err != nil {
-			log.Printf("connection terminated with %s: %w", c.LocalAddr().String(), err)
+			log.Printf("connection terminated with %s: %s", c.LocalAddr().String(), err)
 			return
 		}
 		pl := srv.index.GetPostingsList(string(word))
@@ -44,8 +48,32 @@ func (srv *Server) Handle(c net.Conn) {
 			code := make([]byte, 8)
 			binary.PutVarint(code, 404)
 			wr.Write(code)
+			continue
 		}
 
+		res := make([]domain.PostingWName, len(pl.Postings))
+
+		for i := range pl.Postings {
+			fname, ok := srv.filenames.Get(strconv.FormatInt(pl.Postings[i].Docid, 10))
+			if !ok {
+				code := make([]byte, 8)
+				binary.PutVarint(code, 404)
+				wr.Write(code)
+				continue
+			}
+			res[i].Filename = fname.(string)
+			res[i].Count = pl.Postings[i].Count
+		}
+		code := make([]byte, 8)
+		binary.PutVarint(code, 200)
+		wr.Write(code)
+		resjson, err := json.Marshal(res)
+		if err != nil {
+			code := make([]byte, 8)
+			binary.PutVarint(code, 500)
+			wr.Write(code)
+		}
+		wr.Write(resjson)
 	}
 }
 
@@ -57,7 +85,7 @@ func (srv *Server) Listen(ctx context.Context) error {
 	}
 	for c, err := l.Accept(); ; {
 		if err != nil {
-			log.Println("error accepting connection: %w", err)
+			log.Printf("error accepting connection: %s", err)
 		}
 		go srv.Handle(c)
 	}
