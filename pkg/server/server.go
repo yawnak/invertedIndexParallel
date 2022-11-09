@@ -136,13 +136,17 @@ func (srv *Server) Handle(c net.Conn) {
 	}
 }
 
-func (srv *Server) Listen(ctx context.Context) error {
-	l, err := net.Listen("tcp4", "8000")
-	defer l.Close()
+func (srv *Server) Listen() error {
+	l, err := net.Listen("tcp4", ":8000")
 	if err != nil {
+		log.Printf("error listening: %s\n", err)
 		return fmt.Errorf("error listening: %w", err)
 	}
-	for c, err := l.Accept(); ; {
+	defer l.Close()
+	fmt.Println("started waiting for connections!")
+	for {
+		c, err := l.Accept()
+		log.Println("accepted connection!")
 		if err != nil {
 			log.Printf("error accepting connection: %s", err)
 		}
