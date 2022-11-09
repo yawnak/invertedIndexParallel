@@ -91,8 +91,8 @@ func main() {
 
 	srv := server.NewServer(idx, filenamedict)
 	go srv.Listen()
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	wg.Wait()
-	//RunGin(idx, filenamemap)
+	//wg := sync.WaitGroup{}
+	// wg.Add(1)
+	// wg.Wait()
+	RunGin(idx, filenamemap)
 }
