@@ -94,52 +94,45 @@ func writeResponse(resp Response, wr io.Writer) error {
 	}
 	return nil
 }
+
 func (srv *Server) Handle(c net.Conn) {
 	rd := bufio.NewReader(c)
-	wr := bufio.NewWriter(c)
+	defer c.Close()
 	for {
-		word, ok, err := rd.ReadLine()
-		if !ok {
-			code := make([]byte, 8)
-			binary.PutVarint(code, 400)
-			wr.Write(code)
-			continue
-		}
+		var resp Response
+		req, err := readRequest(rd)
 		if err != nil {
-			log.Printf("connection terminated with %s: %s", c.LocalAddr().String(), err)
-			return
-		}
-		pl := srv.index.GetPostingsList(string(word))
-		if pl == nil {
-			code := make([]byte, 8)
-			binary.PutVarint(code, 404)
-			wr.Write(code)
-			continue
-		}
-
-		res := make([]domain.PostingWName, len(pl.Postings))
-
-		for i := range pl.Postings {
-			fname, ok := srv.filenames.Get(strconv.FormatInt(pl.Postings[i].Docid, 10))
-			if !ok {
-				code := make([]byte, 8)
-				binary.PutVarint(code, 404)
-				wr.Write(code)
-				continue
+			err = writeResponse(Response{Code: 404}, c)
+			if err != nil {
+				fmt.Println(err)
 			}
-			res[i].Filename = fname.(string)
-			res[i].Count = pl.Postings[i].Count
+			break
 		}
-		code := make([]byte, 8)
-		binary.PutVarint(code, 200)
-		wr.Write(code)
-		resjson, err := json.Marshal(res)
+		fmt.Println(req)
+
+		pl := srv.index.GetPostingsList(req.Word)
+		if pl == nil {
+			resp.Code = 404
+		} else {
+			pwn := make([]domain.PostingWName, len(pl.Postings))
+			resp.Code = 200
+			for i := range pwn {
+				fname, ok := srv.filenames.Get(strconv.FormatInt(pl.Postings[i].Docid, 10))
+				if !ok {
+					resp.Code = 500
+					break
+				}
+				pwn[i].Filename = fname.(string)
+				pwn[i].Count = pl.Postings[i].Count
+			}
+			resp.Body = pwn
+		}
+
+		err = writeResponse(resp, c)
 		if err != nil {
-			code := make([]byte, 8)
-			binary.PutVarint(code, 500)
-			wr.Write(code)
+			fmt.Println(err)
+			break
 		}
-		wr.Write(resjson)
 	}
 }
 
