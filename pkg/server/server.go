@@ -34,6 +34,18 @@ func MakeCode(code int64) []byte {
 	return c
 }
 
+func ReadInt64(r io.Reader) (int64, error) {
+	ba := make([]byte, 8)
+	n, err := r.Read(ba)
+	if err != nil {
+		return 0, fmt.Errorf("error reading bytes: %w", err)
+	}
+	if n != 8 {
+		return 0, fmt.Errorf("not enough bytes")
+	}
+	res, _ := binary.Varint(ba)
+	return res, nil
+}
 func (srv *Server) Handle(c net.Conn) {
 	rd := bufio.NewReader(c)
 	wr := bufio.NewWriter(c)
