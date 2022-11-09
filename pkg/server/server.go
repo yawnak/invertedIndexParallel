@@ -73,6 +73,27 @@ func readRequest(r io.Reader) (*Request, error) {
 	req.Word = string(b)
 	return &req, nil
 }
+
+func writeResponse(resp Response, wr io.Writer) error {
+	bresp := make([]byte, 8+8, 8+8+resp.Length)
+
+	binary.PutVarint(bresp[0:8], resp.Code)
+
+	body, err := json.Marshal(resp.Body)
+	if err != nil {
+		return fmt.Errorf("error marshaling body: %w", err)
+	}
+	resp.Length = int64(len(body))
+
+	binary.PutVarint(bresp[8:16], resp.Length)
+
+	bresp = append(bresp, body...)
+	_, err = wr.Write(bresp)
+	if err != nil {
+		return fmt.Errorf("error writing response: %w", err)
+	}
+	return nil
+}
 func (srv *Server) Handle(c net.Conn) {
 	rd := bufio.NewReader(c)
 	wr := bufio.NewWriter(c)
