@@ -7,8 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/asstronom/invertedIndexParallel/pkg/dict"
@@ -55,6 +55,8 @@ func RunGin(idx *index.Index, filenamemap map[int]string) {
 }
 
 func main() {
+	runtime.GOMAXPROCS(4)
+	gin.SetMode(gin.ReleaseMode)
 	flag.IntVar(&numOfMappers, "m", -1, "specify number of mappers")
 	flag.IntVar(&numOfReducers, "r", -1, "specify number of reducers")
 	flag.Parse()
@@ -66,7 +68,7 @@ func main() {
 	// 	panic("number of reducers is not specified")
 	// }
 
-	idx := index.NewIndex(8, 4)
+	idx := index.NewIndex(4, 4)
 	dir, err := os.ReadDir("data")
 	if err != nil {
 		log.Fatalf("error opening dir: %s", err)
