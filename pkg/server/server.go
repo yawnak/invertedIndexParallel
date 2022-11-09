@@ -2,10 +2,10 @@ package server
 
 import (
 	"bufio"
-	"context"
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"strconv"
@@ -20,6 +20,17 @@ type Server struct {
 	filenames *dict.Dictionary
 }
 
+type Request struct {
+	Length int64
+	Word   string
+}
+
+type Response struct {
+	Code   int64
+	Length int64
+	Body   []domain.PostingWName
+}
+
 func NewServer(index *index.Index, filenames *dict.Dictionary) *Server {
 	if index == nil {
 		panic("index is nil")
@@ -28,9 +39,9 @@ func NewServer(index *index.Index, filenames *dict.Dictionary) *Server {
 	return &Server{index: index, filenames: filenames}
 }
 
-func MakeCode(code int64) []byte {
+func Itbs(code int64) []byte {
 	c := make([]byte, 8)
-	binary.PutVarint(c, 500)
+	binary.PutVarint(c, code)
 	return c
 }
 
