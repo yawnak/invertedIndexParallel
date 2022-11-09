@@ -61,14 +61,14 @@ func main() {
 	flag.IntVar(&numOfReducers, "r", -1, "specify number of reducers")
 	flag.Parse()
 
-	// if numOfMappers == -1 {
-	// 	panic("number of mappers is not specified")
-	// }
-	// if numOfReducers == -1 {
-	// 	panic("number of reducers is not specified")
-	// }
+	if numOfMappers == -1 {
+		panic("number of mappers is not specified")
+	}
+	if numOfReducers == -1 {
+		panic("number of reducers is not specified")
+	}
 
-	idx := index.NewIndex(4, 4)
+	idx := index.NewIndex(numOfMappers, numOfReducers)
 	dir, err := os.ReadDir("data")
 	if err != nil {
 		log.Fatalf("error opening dir: %s", err)
