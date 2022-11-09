@@ -75,7 +75,7 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	//make channels
 	reduceins := make([]chan domain.WordToken, len(idx.reducers))
 	for i := range reduceins {
-		reduceins[i] = make(chan domain.WordToken, 1)
+		reduceins[i] = make(chan domain.WordToken, 8)
 	}
 	//waitgroup to wait on reducers later
 	wg := sync.WaitGroup{}
@@ -91,7 +91,7 @@ func (idx *Index) IndexDocs(files []io.Reader) {
 	//create channels for output from mappers
 	mapsout := make([]chan domain.WordToken, len(idx.mappers))
 	for i := range mapsout {
-		mapsout[i] = make(chan domain.WordToken)
+		mapsout[i] = make(chan domain.WordToken, 8)
 	}
 	//make fanin channels that will be used to recieve results from all mappers
 	fanin := buildFanIn(mapsout)
