@@ -46,6 +46,19 @@ func ReadInt64(r io.Reader) (int64, error) {
 	res, _ := binary.Varint(ba)
 	return res, nil
 }
+
+func ReadBytes(r io.Reader, n int64) ([]byte, error) {
+	ba := make([]byte, n)
+	count, err := r.Read(ba)
+	if err != nil {
+		return nil, fmt.Errorf("error reading bytes: %w", err)
+	}
+	if int64(count) != n {
+		return nil, fmt.Errorf("not enough bytes")
+	}
+	return ba, nil
+}
+
 func (srv *Server) Handle(c net.Conn) {
 	rd := bufio.NewReader(c)
 	wr := bufio.NewWriter(c)
