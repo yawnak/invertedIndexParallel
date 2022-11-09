@@ -86,7 +86,7 @@ func readRequest(r io.Reader) (*Request, error) {
 }
 
 func writeResponse(resp Response, wr io.Writer) error {
-	bresp := make([]byte, 8+8, 8+8+resp.Length)
+	bresp := make([]byte, 8+8)
 
 	binary.PutVarint(bresp[0:8], resp.Code)
 
@@ -99,6 +99,8 @@ func writeResponse(resp Response, wr io.Writer) error {
 	binary.PutVarint(bresp[8:16], resp.Length)
 
 	bresp = append(bresp, body...)
+	fmt.Println("sending this:", resp.Code, resp.Length, len(resp.Body))
+	//fmt.Println(bresp)
 	_, err = wr.Write(bresp)
 	if err != nil {
 		return fmt.Errorf("error writing response: %w", err)
@@ -111,6 +113,7 @@ func (srv *Server) Handle(c net.Conn) {
 	defer c.Close()
 	for {
 		var resp Response
+		resp.Body = nil
 		req, err := readRequest(rd)
 		if err != nil {
 			err = writeResponse(Response{Code: 404}, c)
@@ -119,7 +122,7 @@ func (srv *Server) Handle(c net.Conn) {
 			}
 			break
 		}
-		fmt.Println(req)
+		fmt.Printf("got request: %s\n", req.Word)
 
 		pl := srv.index.GetPostingsList(req.Word)
 		if pl == nil {
