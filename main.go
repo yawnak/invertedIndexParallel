@@ -8,10 +8,12 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/asstronom/invertedIndexParallel/pkg/dict"
 	"github.com/asstronom/invertedIndexParallel/pkg/index"
+	"github.com/asstronom/invertedIndexParallel/pkg/server"
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,41 +22,7 @@ var (
 	numOfReducers int
 )
 
-func main() {
-	flag.IntVar(&numOfMappers, "m", -1, "specify number of mappers")
-	flag.IntVar(&numOfReducers, "r", -1, "specify number of reducers")
-	flag.Parse()
-
-	if numOfMappers == -1 {
-		panic("number of mappers is not specified")
-	}
-	if numOfReducers == -1 {
-		panic("number of reducers is not specified")
-	}
-
-	idx := index.NewIndex(8, 4)
-	dir, err := os.ReadDir("data")
-	if err != nil {
-		log.Fatalf("error opening dir: %s", err)
-	}
-	files := make([]io.Reader, 0, len(dir))
-	filenamemap := make(map[int]string, len(dir))
-	filenamedict := dict.NewDictionary(50)
-	for i, fentry := range dir {
-		//fmt.Println("data/" + fentry.Name())
-		file, err := os.Open("data/" + fentry.Name())
-		filenamemap[i] = fentry.Name()
-		filenamedict.Insert(strconv.Itoa(i), fentry.Name())
-		if err != nil {
-			log.Fatalf("error opening file: %s", err)
-		}
-		files = append(files, file)
-	}
-	start := time.Now()
-	idx.IndexDocs(files)
-	elapsed := time.Since(start)
-	fmt.Printf("Time to build the index: %s\n", elapsed.String())
-
+func RunGin(idx *index.Index, filenamemap map[int]string) {
 	router := gin.Default()
 
 	router.GET("/", func(ctx *gin.Context) {
@@ -84,4 +52,47 @@ func main() {
 	})
 
 	router.Run(":8080")
+}
+
+func main() {
+	flag.IntVar(&numOfMappers, "m", -1, "specify number of mappers")
+	flag.IntVar(&numOfReducers, "r", -1, "specify number of reducers")
+	flag.Parse()
+
+	// if numOfMappers == -1 {
+	// 	panic("number of mappers is not specified")
+	// }
+	// if numOfReducers == -1 {
+	// 	panic("number of reducers is not specified")
+	// }
+
+	idx := index.NewIndex(8, 4)
+	dir, err := os.ReadDir("data")
+	if err != nil {
+		log.Fatalf("error opening dir: %s", err)
+	}
+	files := make([]io.Reader, 0, len(dir))
+	filenamemap := make(map[int]string, len(dir))
+	filenamedict := dict.NewDictionary(50)
+	for i, fentry := range dir {
+		//fmt.Println("data/" + fentry.Name())
+		file, err := os.Open("data/" + fentry.Name())
+		filenamemap[i] = fentry.Name()
+		filenamedict.Insert(strconv.Itoa(i), fentry.Name())
+		if err != nil {
+			log.Fatalf("error opening file: %s", err)
+		}
+		files = append(files, file)
+	}
+	start := time.Now()
+	idx.IndexDocs(files)
+	elapsed := time.Since(start)
+	fmt.Printf("Time to build the index: %s\n", elapsed.String())
+
+	srv := server.NewServer(idx, filenamedict)
+	go srv.Listen()
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	wg.Wait()
+	//RunGin(idx, filenamemap)
 }
