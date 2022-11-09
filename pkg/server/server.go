@@ -59,6 +59,20 @@ func ReadBytes(r io.Reader, n int64) ([]byte, error) {
 	return ba, nil
 }
 
+func readRequest(r io.Reader) (*Request, error) {
+	var req Request
+	var err error
+	req.Length, err = ReadInt64(r)
+	if err != nil {
+		return nil, fmt.Errorf("error reading length of request: %w", err)
+	}
+	b, err := ReadBytes(r, req.Length)
+	if err != nil {
+		return nil, fmt.Errorf("error reading word of request: %w", err)
+	}
+	req.Word = string(b)
+	return &req, nil
+}
 func (srv *Server) Handle(c net.Conn) {
 	rd := bufio.NewReader(c)
 	wr := bufio.NewWriter(c)
