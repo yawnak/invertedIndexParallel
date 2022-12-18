@@ -12,3 +12,4 @@ RUN go build -o /build
 EXPOSE 8080 8000
 
 ENTRYPOINT [ "/build" ]
+CMD [ "-m", "4", "-r", "4" ]
